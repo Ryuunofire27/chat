@@ -27,25 +27,50 @@ io.on('connection', (socket)=>{
 
 	const usuarioId=id;
 
-	let usuario = `unknow#${usuarioId}`;
+	//let usuario = `unknow#${usuarioId}`;
 
-	socket.emit('set usuario', {
-		usuario: usuario
-	});
-	
-	socket.emit('add usuarios lobby', {
-		usuarios: connectedUsers
-	});
+	let isRegister = false;
 
-	connectedUsers.push({
-		usuario: usuario,
-		id: usuarioId
-	});
+	let usuario = '';
 
-	
-	socket.broadcast.emit('add usuario lobby', {
-		usuario: usuario,
-		id: usuarioId
+	socket.on('existe usuario', (username, cb)=>{
+		let index = connectedUsers.findIndex((o)=>{
+			return o.usuario==username;
+		});
+		if(index>-1){
+			cb(false);
+		}else{
+			usuario = username;
+
+			socket.emit('set usuario', {
+				usuario: usuario
+			});
+			
+			socket.emit('add usuarios lobby', {
+				usuarios: connectedUsers
+			});
+			
+			socket.broadcast.emit('add usuario lobby', {
+				usuario: usuario,
+				id: usuarioId
+			});
+			id++;
+
+			connectedUsers.push({
+				usuario: usuario,
+				id: usuarioId
+			})
+			cb(true);
+		}
+	})
+
+	socket.on('enviar imagen',(imagen)=>{
+		var mensaje = '';
+		//mensaje += '<a href="'+imagen.url+'" target="_blank"><img class="thumb" src="'+imagen.url+'" title="'+imagen.nombre+'"/></a>'
+		socket.broadcast.emit('recibir imagenes',{
+			imagen: imagen,
+			usuario: usuario
+		})
 	});
 
 	socket.on('enviar mensaje', (data)=>{
@@ -56,21 +81,15 @@ io.on('connection', (socket)=>{
 	});
 
 	socket.on('disconnect', ()=>{
-		const index = () =>{
-			for(let i=0; i<connectedUsers.length; i++){
-				if(connectedUsers[i].usuario==usuario && connectedUsers[i].id==usuarioId){
-					return i;
-				}
-			}
-			return -1;
-		}
-		if(index()>-1){
-			connectedUsers.splice(index(), 1);
+		const index = connectedUsers.findIndex((o)=>{
+			return o.usuario==usuario && o.id == usuarioId
+		});
+		if(index>-1){
+			connectedUsers.splice(index, 1);
 			socket.broadcast.emit('eliminar usuario',{
 				id: usuarioId
 			});
 		}
 	});
 
-	id++;
 });

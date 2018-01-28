@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+	<meta charset="UTF-8">
+	<title>Chat</title>
+	<link rel="stylesheet" type="text/css" href="./main.css">
+</head>
+<body>
+	<h1>Chat de Charlie</h1>
+	<div id="content">
+		<div id="content-chat">
+			<div id="chat">
+			</div>
+			<div id="lobby">
+			</div>
+		</div>
+		<form id="chat-form">
+			<span>Nombre: </span>
+			<input type="text" id="input-usuario" required>
+			<br/>
+			<span>Mensaje:</span>
+			<input type="text" id="input-mensaje" autocomplete="off" required>
+			<br/>
+			<button></button>
+		</form>
+	</div>
+	<script src="./socket.io/socket.io.js"></script>
+	<script src="./chat.js"></script>
+</body>
+</html>

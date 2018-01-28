@@ -39,20 +39,22 @@
 
 	chatForm.onsubmit = function(e){
 		e.preventDefault();
-		console.log(chatMessage.value);
 		io.emit('enviar mensaje', {
 			mensaje: chatMessage.value,
 			usuario: usuario.value
 		});
 		mensajeChat(d,usuario.value, chatMessage.value);
+		chat.scrollTop = chat.scrollHeight;
 		chatMessage.value = '';
+
 
 	}
 
 	//funcion para agregar los mensajes recibidos al chat
 
 	io.on('recibir mensaje', (data) => {
-		mensajeChat(d, data.usuario, data.mensaje)
+		mensajeChat(d, data.usuario, data.mensaje);
+		chat.scrollTop = chat.scrollHeight;
 	})
 
 	//funcion para agregar a los usuarios conectados en el chat
@@ -69,7 +71,6 @@
 	//funcion para agregar a los usuarios que se van conectando al chat
 
 	io.on('add usuario lobby', (data)=>{
-		console.log(data);
 		lobby.innerHTML += '<div id="usu-'+data.id+'">'+data.usuario+'</div>';
 		
 	});
@@ -78,7 +79,6 @@
 
 	io.on('eliminar usuario', (data) => {
 		var usuarioEliminado = d.querySelector('#usu-'+data.id);
-		console.log(usuarioEliminado);
 		lobby.removeChild(usuarioEliminado);
 	});
 })(document,io)

@@ -19,6 +19,8 @@
 	//var imagenesArray = new Array();
 	var imagen = new Object();
 
+	//Login 
+
 
 	registerForm.onsubmit = function(e){
 
@@ -64,7 +66,6 @@
 		        		url: url,
 		        		nombre: theFile.name
 		        	}
-		        	//io.emit('enviar imagen',e.target.result);
 		       		// Render thumbnail.
 		       		var span = d.createElement('span');
 		       		span.innerHTML = ['<a href="',url,'" target="_blank"><img class="thumb" src="',url,'" title="', escape(theFile.name), '"/></a>'].join('');
@@ -77,12 +78,7 @@
 	    }
 	}
 
-	//funcion para asignar un nombre de usuario desconocido
-
-	io.on('set usuario', (data)=>{
-		usuario.value = data.usuario;
-	});
-
+	
 	//funcion para enviar el mensaje
 
 	chatForm.onsubmit = function(e){
@@ -91,6 +87,7 @@
 			io.emit('enviar imagen', imagen);
 			mensajeChat(d,usuario.value, imagen);
 			img.innerHTML='';
+
 		}else{
 			if(chatMessage.value!=''){
 				io.emit('enviar mensaje', {
@@ -98,21 +95,11 @@
 					usuario: usuario.value
 				});
 				mensajeChat(d,usuario.value, chatMessage.value);
-				chatMessages.scrollTop = chat.scrollHeight;
 				chatMessage.value = '';
 			}
 		}
-
-	}
-
-
-
-	//funcion para agregar los mensajes recibidos al chat
-
-	io.on('recibir mensaje', (data) => {
-		mensajeChat(d, data.usuario, data.mensaje);
 		chatMessages.scrollTop = chatMessages.scrollHeight;
-	})
+	}	
 
 	//funcion utilitaria para agregar los mensajes
 
@@ -135,6 +122,21 @@
 		chatMessages.insertAdjacentHTML('beforeend','<br/>' + contenido);
 
 	}
+
+	//sockets events
+
+	//funcion para asignar un nombre de usuario desconocido
+
+	io.on('set usuario', (data)=>{
+		usuario.value = data.usuario;
+	});
+
+	//funcion para agregar los mensajes recibidos al chat
+
+	io.on('recibir mensaje', (data) => {
+		mensajeChat(d, data.usuario, data.mensaje);
+		chatMessages.scrollTop = chatMessages.scrollHeight;
+	})
 
 	io.on('recibir imagenes', data => {
 		mensajeChat(d,data.usuario, data.imagen);

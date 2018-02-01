@@ -56,6 +56,7 @@ h1{
 	color: #fff;
 	font-size: 1.2rem;
 	text-align: center;
+	outline: none;
 }
 
 #register-form button{
@@ -100,6 +101,7 @@ h1{
 	padding: 3px 10px;
 	border-radius: 13px;
 	min-width: 10px;
+	max-width: 60%;
 }
 
 .my-message-msj{
@@ -129,12 +131,19 @@ span[name=mensaje]{
 	width: 85%;
 }
 
+#img-form{
+	width: 16.75px;
+	height: 19.2px;
+	overflow: hidden;
+}
+
 #img-upload{
 	opacity: 0;
 	cursor: pointer;
 	position: absolute;
 	width: 16.75px;
 	height: 19.2px;
+	overflow: hidden;
 }
 
 .upload-image{

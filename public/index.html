@@ -7,39 +7,50 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
-	<h1>Chat de Charlie</h1>
-	<div id="content">
-		<div id="user-register" class="display-flex">
-			<span id="register-span">Digite su nombre de usuario</span>
-			<form id="register-form">
-				<input type="text" id="register-username" autocomplete="off">
-				<button></button>
-			</form>
-		</div>
-		<div id="chat" class="display-none">
-			<div id="content-chat">
-				<div id="chat-messages">
-				</div>
-				<div id="connected-users">
-				</div>
-			</div>
-			<form id="chat-form">
-				<span>Nombre: </span>
-				<input type="text" id="input-usuario" disabled>
-				<br/>
-				<span>Mensaje:</span>
-				<input type="text" id="input-mensaje" autocomplete="off">
-				<br/>
-				<button></button>
-			</form>
-			<form id="img-form" title="añadir archivos">
-				<input type="file" id="img-upload" name="imagen" accept="*">
-				<i class="fa fa-file-image-o upload-image" aria-hidden="true"></i>
+  <div id="body">
+    <h1>Chat de Charlie</h1>
+    <div id="content">
+      <div id="main">
+        <h2>Salas disponibles</h2>
+        <div class="rooms-main">
+          <ul id="rooms-list">
+          </ul>
+          <div id="create-room"><span>+</span><span>Sala</span></div>
+        </div>
+      </div>
+      <div id="user-register" class="display-none">
+        <div id="register-title">Welcome to </div>
+        <span id="register-span">Digite su nombre de usuario</span>
+        <form id="register-form">
+          <input type="text" id="register-username" autocomplete="off">
+          <button></button>
+        </form>
+      </div>
+      <div id="chat" class="display-none">
+        <div id="content-chat">
+          <div id="chat-messages">
+          </div>
+          <div id="connected-users">
+          </div>
+        </div>
+        <form id="chat-form">
+          <span>Nombre: </span>
+          <input type="text" id="input-usuario" disabled>
+          <br/>
+          <span>Mensaje:</span>
+          <input type="text" id="input-mensaje" autocomplete="off">
+          <br/>
+          <button></button>
+        </form>
+        <form id="img-form" title="añadir archivos">
+          <input type="file" id="img-upload" name="imagen" accept="*">
+          <i class="fa fa-file-image-o upload-image" aria-hidden="true"></i>
 
-			</form>
-			<div id="img"></div>
-		</div>
-	</div>
+        </form>
+        <div id="img"></div>
+      </div>
+    </div>
+  </div>
 	<script src="./socket.io/socket.io.js"></script>
 	<script src="./chat.js"></script>
 </body>

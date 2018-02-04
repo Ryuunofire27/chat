@@ -61,6 +61,7 @@ cha.on('connection', (socket)=>{
      };
 	   rooms.push(newRoom);
      roomsId++;
+     room = newRoom;
      socket.broadcast.emit('new room', newRoom);
      socket.emit('enter room', newRoom);
   });

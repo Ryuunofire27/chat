@@ -37,12 +37,6 @@
           name: roomName,
           pssw: pssw
         };
-        /*if(cbValue){
-          putPassword(io,room);
-          io.emit('join',{room:room});
-        }else{
-          io.emit('join', {room:room});
-        }*/
         putPassword(io,room,cbValue,function (){
           io.emit('join',{room: room});
         })
@@ -78,11 +72,11 @@
     var username = registerUsername.value;
     if(username!==''){
       io.emit('existe usuario', username,  function (cbValue){
-        if(cbValue){
+        if(!cbValue){
           register.classList.remove("display-flex");
           register.classList.add("display-none");
           chat.classList.remove("display-none");
-          io.emit('add user', username);
+          //io.emit('add user', username);
         }else{
           registerSpan.innerHTML = "El usuario \"" + username + "\" ya existe";
           registerUsername.value = null;

@@ -57,11 +57,14 @@ cha.on('connection', (socket)=>{
      const newRoom = {
        id: roomsId,
        name: data.name,
-       pssw: data.pssw
+       pssw: data.pssw,
+       connectedUsers: []
      };
 	   rooms.push(newRoom);
      roomsId++;
      room = newRoom;
+     roomPath = `/rooms_${room.id}`;
+     socket.join(roomPath);
      socket.broadcast.emit('new room', newRoom);
      socket.emit('enter room', newRoom);
   });
@@ -94,7 +97,7 @@ cha.on('connection', (socket)=>{
 		    return o.usuario===username;
       });
 		  if(index2>-1){
-		    cb(false);
+		    cb(true);
       }else{
         usuario = username;
 
@@ -116,7 +119,7 @@ cha.on('connection', (socket)=>{
           usuario: usuario,
           id: usuarioId
         });
-        cb(true);
+        cb(false);
       }
 		}
 	})

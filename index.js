@@ -40,7 +40,7 @@ function exit(socket, room,usuario, usuarioId, roomPath){
 
     if (index > -1) {
       if(rooms[index].connectedUsers.length===1){
-        deleteRoom(io,index);
+        deleteRoom(socket,index,room);
       }else{
         const index2 = rooms[index].connectedUsers.findIndex((o) => {
           return o.usuario == usuario && o.id == usuarioId

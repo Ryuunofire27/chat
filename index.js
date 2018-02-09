@@ -8,16 +8,19 @@ const express = require('express'),
 	dirStatic = express.static(`${__dirname}/public`);
 
 let id = 1;
+let usuarioID = 1;
 
 let rooms = [
   {
     id: 1,
+    userMaster: '',
     name: 'Sala 1',
     pssw: '',
     connectedUsers: []
   },
   {
     id: 2,
+    userMaster: '',
     name: 'Sala 2',
     pssw: 'charlie',
     connectedUsers: []
@@ -29,16 +32,50 @@ let roomsId = 3;
 app.use(dirStatic);
 http.listen(port, ()=>console.log('Servidor levantado en http://localhost:%d',port));
 
+function exit(socket, room,usuario, usuarioId, roomPath){
+  if (room) {
+    const index = rooms.findIndex((o) => {
+      return o.id == room.id;
+    });
+
+    if (index > -1) {
+      if(rooms[index].connectedUsers.length===1){
+        deleteRoom(io,index);
+      }else{
+        const index2 = rooms[index].connectedUsers.findIndex((o) => {
+          return o.usuario == usuario && o.id == usuarioId
+        });
+        rooms[index].connectedUsers.splice(index2, 1);
+        socket.in(roomPath).emit('eliminar usuario', {
+          id: usuarioId
+        });
+      }
+    }
+    room = null;
+  }
+}
+
+function deleteRoom(socket, index, room){
+  rooms.splice(index,1);
+  socket.broadcast.emit('delete room', room);
+}
+
 const cha = io.of('/cha');
 
 cha.on('connection', (socket)=>{
 
-	const usuarioId=id;
+  console.log('alguien se ha conectado');
+
+	const usuarioId=usuarioID;
 	let room=null;
 	let roomPath;
   let isMain = true;
 
 	let usuario = '';
+
+	if(room===null){
+	  roomPath=null;
+  }
 
 	if(isMain){
 	  socket.emit('rooms',rooms);
@@ -54,19 +91,29 @@ cha.on('connection', (socket)=>{
   });
 
 	socket.on('create room', data => {
+	   usuario=data.username;
      const newRoom = {
        id: roomsId,
+       userMaster: usuario,
        name: data.name,
        pssw: data.pssw,
-       connectedUsers: []
+       connectedUsers: [{
+         usuario: usuario,
+         id: usuarioId
+       }]
      };
 	   rooms.push(newRoom);
+	   console.log(rooms);
      roomsId++;
      room = newRoom;
      roomPath = `/rooms_${room.id}`;
      socket.join(roomPath);
      socket.broadcast.emit('new room', newRoom);
-     socket.emit('enter room', newRoom);
+     socket.emit('create room', newRoom);
+     socket.emit('set usuario', {
+       usuario: usuario
+     });
+     usuarioID++;
   });
 
 	socket.on('has password', (data, cb )=>{
@@ -113,7 +160,7 @@ cha.on('connection', (socket)=>{
           usuario: usuario,
           id: usuarioId
         });
-        id++;
+        usuarioID++;
 
         rooms[index].connectedUsers.push({
           usuario: usuario,
@@ -122,7 +169,7 @@ cha.on('connection', (socket)=>{
         cb(false);
       }
 		}
-	})
+	});
 
 	socket.on('enviar imagen',(imagen)=>{
 		var mensaje = '';
@@ -140,22 +187,24 @@ cha.on('connection', (socket)=>{
 		});
 	});
 
-	socket.on('disconnect', ()=> {
-    if (room) {
-      const index = rooms.findIndex((o) => {
-        return o.id == room.id;
-      });
-
-      if (index > -1) {
-        const index2 = rooms[index].connectedUsers.findIndex((o) => {
-          return o.usuario == usuario && o.id == usuarioId
-        });
-        rooms[index].connectedUsers.splice(index2, 1);
-        socket.in(roomPath).emit('eliminar usuario', {
-          id: usuarioId
-        });
-      }
+	socket.on('close room', (data)=>{
+    socket.in(roomPath).emit('close room');
+    const index = rooms.findIndex((o) => {
+      return o.id == room.id;
+    });
+    if(index>-1){
+      deleteRoom(socket,index, room);
     }
+  });
+
+	socket.on('exit', ()=>{
+	  console.log('Alguien esta saliendo de la sala');
+	  exit(socket,room, usuario, usuarioId, roomPath);
+  });
+
+	socket.on('disconnect', ()=> {
+	  console.log('alguien se esta desconectando');
+    exit(socket,room, usuario, usuarioId, roomPath);
 	});
 
 });

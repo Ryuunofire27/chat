@@ -1,3 +1,5 @@
+var constRegisterTitle = 'Welcome to ';
+var constRegisterSpan = 'Digite su nombre de usuario';
 (function chat(d,io){
 
   "use strict";
@@ -18,6 +20,7 @@
   var chatMessage = d.querySelector('#input-mensaje');
   var usuario = d.querySelector('#input-usuario');
   var connectedUsers = d.querySelector('#connected-users');
+  var menuFlotante = d.querySelector('#menu-flotante');
   var imgUpload = d.querySelector('#img-upload');
   var img = d.querySelector('#img');
   var imgs = d.getElementsByClassName('thumb');
@@ -44,25 +47,68 @@
     }
   };
 
+  menuFlotante.onclick = function (e){
+    if(e.target.name==='salir'){
+      io.emit('exit');
+      if(connectedUsers.childElementCount===0) {
+        deleteRoom(d,roomsList,room);
+      }
+
+      setDefaultToMain();
+    }
+    if(e.target.name==='close'){
+      io.emit('close room');
+      deleteRoom(d,roomsList,room);
+      setDefaultToMain();
+    }
+  };
+
+  function setDefaultToMain(){
+    room = null;
+    registerTitle.innerHTML = constRegisterTitle;
+    registerSpan.innerHTML = constRegisterSpan;
+    registerUsername.value = '';
+    chatMessages.innerHTML=null;
+    connectedUsers.innerHTML = null;
+
+    chat.classList.remove('display-flex');
+    chat.classList.add('display-none');
+
+    main.classList.remove('display-none');
+    main.classList.add('display-flex');
+  }
+
   createRoom.onclick = function(){
     createRoomF(io);
   };
 
   io.on('rooms', rooms => {
-    agregarSalas(roomsList,rooms);
+    if(rooms.length!==0) {
+      agregarSalas(roomsList, rooms);
+    }
   });
 
   io.on('new room', room => {
-    const rooms = [];
-    rooms.push(room);
-    agregarSalas(roomsList,rooms);
+    agregarSalas(roomsList,new Array(room));
   });
 
   io.on('enter room', room => {
+    main.classList.remove('display-flex');
     main.classList.add('display-none');
     register.classList.remove('display-none');
     register.classList.add('display-flex');
     registerTitle.innerHTML += room.name;
+    registerUsername.focus();
+  });
+
+  io.on('create room', newRoom => {
+    room = newRoom;
+    agregarSalas(roomsList, new Array(newRoom));
+    main.classList.remove('display-flex');
+    main.classList.add('display-none');
+    chat.classList.remove('display-none');
+    chat.classList.add('display-flex');
+    renderCloseRoom(d,menuFlotante);
   });
 
   registerForm.onsubmit = function(e){
@@ -76,7 +122,6 @@
           register.classList.remove("display-flex");
           register.classList.add("display-none");
           chat.classList.remove("display-none");
-          //io.emit('add user', username);
         }else{
           registerSpan.innerHTML = "El usuario \"" + username + "\" ya existe";
           registerUsername.value = null;
@@ -96,7 +141,7 @@
       img.innerHTML='';
 
     }else{
-      if(chatMessage.value!=''){
+      if(chatMessage.value!==''){
         io.emit('enviar mensaje', {
           mensaje: chatMessage.value,
           usuario: usuario.value
@@ -106,7 +151,7 @@
       }
     }
     chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
+  };
 
   //funcion utilitaria para agregar los mensajes
 
@@ -118,7 +163,7 @@
       clase = 'another-message';
     }
     var contenido = '<div class="'+clase+'">';
-    contenido +='<div class="mensaje '+clase+'-msj">'
+    contenido +='<div class="mensaje '+clase+'-msj">';
     contenido+= '<span name=usuario>'+usuarioI+'</span><br/>';
     if(mensaje.url){
       contenido += '<a href="'+mensaje.url+'" target="_blank"><img class="thumb" src="'+mensaje.url+'" title="'+mensaje.nombre+'"/></a>'
@@ -164,6 +209,7 @@
 
   io.on('add usuario lobby', (data)=>{
     connectedUsers.innerHTML += '<div id="usu-'+data.id+'">'+data.usuario+'</div>';
+    console.log(connectedUsers);
 
   });
 
@@ -174,7 +220,38 @@
     connectedUsers.removeChild(usuarioEliminado);
   });
 
+  io.on('delete room', room =>{
+    deleteRoom(d,roomsList, room);
+  });
+
+  io.on('close room', ()=>{
+    console.log('emitido');
+    deleteRoom(d,roomsList,room);
+    setDefaultToMain();
+  });
+
 })(document,io);
+
+function renderCloseRoom(d,menu){
+  "use strict";
+  var btnClose = d.createElement('button');
+
+  btnClose.innerHTML='CLOSE ROOM';
+  btnClose.classList.add('boton-flotante');
+  btnClose.setAttribute('name', 'close');
+
+  menu.appendChild(btnClose);
+}
+
+function deleteRoom(d,roomsList, room){
+  "use strict";
+  console.log(room);
+  var roomDelete = d.querySelector('#rooms_' + room.id);
+  roomsList.removeChild(roomDelete);
+  if(roomsList.childNodes.length===1){
+    roomsList.classList.add('border_none');
+  }
+}
 
 function agregarSalas(list,rooms){
   "use strict";
@@ -183,6 +260,14 @@ function agregarSalas(list,rooms){
 
   for(var i in rooms){
     roomsHtml += '<li class="room" id="rooms_'+rooms[i].id+'">'+rooms[i].name+'</li>';
+  }
+
+  if(!list.classList.contains('border_rooms_list')){
+    list.classList.add('border_rooms_list');
+  }
+
+  if(list.classList.contains('border_none')){
+    list.classList.remove('border_none');
   }
 
   list.insertAdjacentHTML('beforeend', roomsHtml);
@@ -198,10 +283,13 @@ function createRoomF(io){
     var close = document.createElement('button');
     var title = document.createElement('div');
     var formCreateRoom = document.createElement('form');
+    var divUsername = document.createElement('div');
     var divRoomName = document.createElement('div');
     var divRoomPssw = document.createElement('div');
+    var spanUsername = document.createElement('span');
     var spanName = document.createElement('span');
     var spanPssw = document.createElement('span');
+    var inputUsername = document.createElement('input');
     var inputRoomName = document.createElement("input");
     var inputRoomPssw = document.createElement("input");
     var submit = document.createElement("input");
@@ -223,14 +311,22 @@ function createRoomF(io){
     submit.setAttribute('value', 'CREATE');
     submit.classList.add('popup-submit');
 
+    inputUsername.setAttribute('name', 'username');
+    inputUsername.setAttribute('type', 'text');
+
     inputRoomName.setAttribute('name', 'room_name');
     inputRoomName.setAttribute('type', 'text');
 
     inputRoomPssw.setAttribute('name','room_pssw');
     inputRoomPssw.setAttribute('type', 'text');
 
+    spanUsername.innerHTML = "Username";
     spanName.innerHTML = "Room name";
     spanPssw.innerHTML = "Room pssw";
+
+    divUsername.classList.add('popup-input');
+    divUsername.appendChild(spanUsername);
+    divUsername.appendChild(inputUsername);
 
     divRoomName.classList.add('popup-input');
     divRoomName.appendChild(spanName);
@@ -240,6 +336,7 @@ function createRoomF(io){
     divRoomPssw.appendChild(spanPssw);
     divRoomPssw.appendChild(inputRoomPssw);
 
+    formCreateRoom.appendChild(divUsername);
     formCreateRoom.appendChild(divRoomName);
     formCreateRoom.appendChild(divRoomPssw);
     formCreateRoom.appendChild(submit);
@@ -247,6 +344,7 @@ function createRoomF(io){
     formCreateRoom.onsubmit = function (e) {
       e.preventDefault();
       io.emit('create room',{
+        username: inputUsername.value,
         name: inputRoomName.value,
         pssw: inputRoomPssw.value
       });
